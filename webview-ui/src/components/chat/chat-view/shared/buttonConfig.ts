@@ -289,8 +289,17 @@ export function getButtonConfig(message: ClineMessage | undefined, _mode: Mode =
 	}
 
 	// Handle say messages (typically don't require buttons except in special cases)
-	if (message.type === "say" && message.say === "api_req_started") {
-		return BUTTON_CONFIGS.api_req_active
+	if (message.type === "say") {
+		switch (message.say) {
+			case "api_req_started":
+				return BUTTON_CONFIGS.api_req_active
+			// button case for task_progress
+			case "task_progress":
+				console.log("task_progress button state")
+				return BUTTON_CONFIGS.default
+			default:
+				break
+		}
 	}
 
 	return BUTTON_CONFIGS.partial

@@ -40,7 +40,9 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 	const [enableButtons, setEnableButtons] = useState<boolean>(false)
 
 	const [lastMessage, secondLastMessage] = useMemo(() => {
-		return [messages.at(-1), messages.at(-2)]
+		// Exclude task_progress messages in the reverse search for a message to define button state
+		const interactiveMessages = messages.filter((msg) => msg.say !== "task_progress")
+		return [interactiveMessages.at(-1), interactiveMessages.at(-2)]
 	}, [messages])
 
 	// Clear input when transitioning from command_output to api_req

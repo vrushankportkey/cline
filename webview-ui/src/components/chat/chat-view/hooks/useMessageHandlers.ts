@@ -69,6 +69,16 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 							)
 							break
 					}
+				} else {
+					// If the clineAsk is unset, do not block user from sending messages
+					await TaskServiceClient.askResponse(
+						AskResponseRequest.create({
+							responseType: "messageResponse",
+							text: messageToSend,
+							images,
+							files,
+						}),
+					)
 				}
 				setInputValue("")
 				setActiveQuote(null)
