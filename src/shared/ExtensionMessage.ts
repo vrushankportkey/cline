@@ -69,6 +69,12 @@ export interface ExtensionState {
 	strictPlanModeEnabled?: boolean
 	focusChainSettings: FocusChainSettings
 	focusChainFeatureFlagEnabled?: boolean
+	buttonStateSnapshot?: {
+		buttonConfig: any
+		timestamp: number
+		messageId?: string
+		fromMode: "plan" | "act"
+	}
 }
 
 export interface ClineMessage {

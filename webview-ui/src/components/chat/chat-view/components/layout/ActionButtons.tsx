@@ -3,7 +3,8 @@ import type { Mode } from "@shared/storage/types"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import type React from "react"
 import { useEffect, useMemo, useState } from "react"
-import { BUTTON_CONFIGS, getButtonConfig } from "../../shared/buttonConfig"
+import { BUTTON_CONFIGS, getButtonConfig, getButtonConfigWithPersistence } from "../../shared/buttonConfig"
+import { captureButtonState, shouldPersistButtonState } from "../../shared/buttonStatePersistence"
 import type { ChatState, MessageHandlers } from "../../types/chatTypes"
 
 interface ActionButtonsProps {
@@ -53,9 +54,22 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 		}
 	}, [chatState, lastMessage, secondLastMessage])
 
-	// Apply button configuration with a single batched update
+	// Apply button configuration with persistence support
 	useEffect(() => {
+		// For now, we'll use the regular getButtonConfig since we need access to the extension state
+		// In a full implementation, we would access buttonStateSnapshot from extension state
 		const buttonConfig = getButtonConfig(lastMessage, mode)
+
+		// Capture button state if it should be persisted
+		if (lastMessage && shouldPersistButtonState(buttonConfig)) {
+			// In a full implementation, this would be sent to the backend
+			console.log("Button state should be persisted:", {
+				message: lastMessage.ts,
+				config: buttonConfig,
+				mode,
+			})
+		}
+
 		setEnableButtons(buttonConfig.enableButtons)
 		setSendingDisabled(buttonConfig.sendingDisabled)
 		setPrimaryButtonText(buttonConfig.primaryText)

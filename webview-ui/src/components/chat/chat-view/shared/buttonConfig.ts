@@ -1,5 +1,6 @@
 import type { ClineMessage, ClineSayTool } from "@shared/ExtensionMessage"
 import type { Mode } from "@shared/storage/types"
+import { ButtonStateSnapshot, restoreButtonState } from "./buttonStatePersistence"
 
 /**
  * Button action types that determine the behavior
@@ -207,6 +208,33 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 }
 
 const errorTypes = ["api_req_failed", "mistake_limit_reached", "auto_approval_max_req_reached"]
+
+/**
+ * Determines button configuration based on message type and state with persistence support
+ * This version can restore button states from snapshots when switching modes
+ */
+export function getButtonConfigWithPersistence(
+	message: ClineMessage | undefined,
+	mode: Mode = "act",
+	persistedSnapshot?: ButtonStateSnapshot | null,
+): ButtonConfig {
+	if (!message) {
+		return BUTTON_CONFIGS.default
+	}
+
+	// First, get the normal button configuration
+	const normalConfig = getButtonConfig(message, mode)
+
+	// If we have a persisted snapshot, try to restore it
+	if (persistedSnapshot) {
+		const restoredConfig = restoreButtonState(persistedSnapshot, message, mode, normalConfig)
+		if (restoredConfig !== normalConfig) {
+			return restoredConfig
+		}
+	}
+
+	return normalConfig
+}
 
 /**
  * Determines button configuration based on message type and state

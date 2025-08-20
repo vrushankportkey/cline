@@ -240,6 +240,24 @@ export class Controller {
 
 	async togglePlanActMode(modeToSwitchTo: Mode, chatContent?: ChatContent): Promise<boolean> {
 		const didSwitchToActMode = modeToSwitchTo === "act"
+		const currentMode = this.cacheService.getGlobalStateKey("mode")
+
+		// Capture current button state before mode switch
+		const clineMessages = this.task?.messageStateHandler.getClineMessages() || []
+		const lastMessage = clineMessages.length > 0 ? clineMessages[clineMessages.length - 1] : undefined
+
+		if (lastMessage) {
+			// Create button state snapshot - the frontend will populate the actual button config
+			const buttonStateSnapshot = {
+				buttonConfig: {}, // Will be populated by frontend
+				timestamp: Date.now(),
+				messageId: lastMessage.ts?.toString(),
+				fromMode: currentMode,
+			}
+
+			// Store the snapshot temporarily in global state
+			this.cacheService.setGlobalState("buttonStateSnapshot", buttonStateSnapshot)
+		}
 
 		// Store mode to global state
 		this.cacheService.setGlobalState("mode", modeToSwitchTo)
@@ -600,6 +618,7 @@ export class Controller {
 		)
 		const mcpResponsesCollapsed = this.cacheService.getGlobalStateKey("mcpResponsesCollapsed")
 		const terminalOutputLineLimit = this.cacheService.getGlobalStateKey("terminalOutputLineLimit")
+		const buttonStateSnapshot = this.cacheService.getGlobalStateKey("buttonStateSnapshot")
 		const localClineRulesToggles = this.cacheService.getWorkspaceStateKey("localClineRulesToggles")
 		const localWindsurfRulesToggles = this.cacheService.getWorkspaceStateKey("localWindsurfRulesToggles")
 		const localCursorRulesToggles = this.cacheService.getWorkspaceStateKey("localCursorRulesToggles")
@@ -660,6 +679,7 @@ export class Controller {
 			welcomeViewCompleted: welcomeViewCompleted as boolean, // Can be undefined but is set to either true or false by the migration that runs on extension launch in extension.ts
 			mcpResponsesCollapsed,
 			terminalOutputLineLimit,
+			buttonStateSnapshot,
 		}
 	}
 

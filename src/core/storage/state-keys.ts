@@ -167,6 +167,7 @@ export type GlobalStateKey =
 	| "actModeHuggingFaceModelInfo"
 	| "actModeHuaweiCloudMaasModelId"
 	| "actModeHuaweiCloudMaasModelInfo"
+	| "buttonStateSnapshot"
 
 export type LocalStateKey = "localClineRulesToggles" | "localCursorRulesToggles" | "localWindsurfRulesToggles" | "workflowToggles"
 
@@ -290,6 +291,14 @@ export interface GlobalState {
 	actModeHuggingFaceModelInfo: ModelInfo | undefined
 	actModeHuaweiCloudMaasModelId: string | undefined
 	actModeHuaweiCloudMaasModelInfo: ModelInfo | undefined
+	buttonStateSnapshot:
+		| {
+				buttonConfig: any
+				timestamp: number
+				messageId?: string
+				fromMode: "plan" | "act"
+		  }
+		| undefined
 }
 
 export interface Secrets {
