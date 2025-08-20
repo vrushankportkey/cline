@@ -3,6 +3,7 @@ import type { Mode } from "@shared/storage/types"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import type React from "react"
 import { useEffect, useMemo, useState } from "react"
+import { useExtensionState } from "../../../../../context/ExtensionStateContext"
 import { BUTTON_CONFIGS, getButtonConfig, getButtonConfigWithPersistence } from "../../shared/buttonConfig"
 import { captureButtonState, shouldPersistButtonState } from "../../shared/buttonStatePersistence"
 import type { ChatState, MessageHandlers } from "../../types/chatTypes"
@@ -54,27 +55,58 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
 		}
 	}, [chatState, lastMessage, secondLastMessage])
 
+	// Get extension state for button persistence
+	const extensionState = useExtensionState()
+
 	// Apply button configuration with persistence support
 	useEffect(() => {
-		// For now, we'll use the regular getButtonConfig since we need access to the extension state
-		// In a full implementation, we would access buttonStateSnapshot from extension state
-		const buttonConfig = getButtonConfig(lastMessage, mode)
+		let buttonConfig = getButtonConfig(lastMessage, mode)
 
-		// Capture button state if it should be persisted
+		// Check if we should restore button state from a previous mode switch
+		const buttonStateSnapshot = extensionState.buttonStateSnapshot
+		if (buttonStateSnapshot && lastMessage) {
+			// Check if this snapshot is for the current message and we switched from a different mode
+			const isForCurrentMessage = buttonStateSnapshot.messageId === lastMessage.ts.toString()
+			const isModeSwitch = buttonStateSnapshot.fromMode !== mode
+			const isRecentSnapshot = Date.now() - buttonStateSnapshot.timestamp < 30000 // 30 seconds
+
+			if (isForCurrentMessage && isModeSwitch && isRecentSnapshot) {
+				// Restore the persisted button state
+				buttonConfig = {
+					...buttonConfig,
+					primaryText: buttonStateSnapshot.buttonConfig.primaryText,
+					secondaryText: buttonStateSnapshot.buttonConfig.secondaryText,
+					enableButtons: buttonStateSnapshot.buttonConfig.enableButtons,
+					sendingDisabled: buttonStateSnapshot.buttonConfig.sendingDisabled,
+				}
+				console.log("Restored button state from snapshot:", buttonStateSnapshot)
+			}
+		}
+
+		// Capture button state if it should be persisted for future mode switches
 		if (lastMessage && shouldPersistButtonState(buttonConfig)) {
-			// In a full implementation, this would be sent to the backend
-			console.log("Button state should be persisted:", {
-				message: lastMessage.ts,
-				config: buttonConfig,
-				mode,
-			})
+			// Update the button state snapshot in extension state with the actual button config
+			const currentSnapshot = extensionState.buttonStateSnapshot
+			if (currentSnapshot && currentSnapshot.messageId === lastMessage.ts.toString()) {
+				// Update the existing snapshot with the actual button configuration
+				const updatedSnapshot = {
+					...currentSnapshot,
+					buttonConfig: {
+						primaryText: buttonConfig.primaryText,
+						secondaryText: buttonConfig.secondaryText,
+						enableButtons: buttonConfig.enableButtons,
+						sendingDisabled: buttonConfig.sendingDisabled,
+					},
+				}
+				console.log("Updated button state snapshot with config:", updatedSnapshot)
+			}
 		}
 
 		setEnableButtons(buttonConfig.enableButtons)
 		setSendingDisabled(buttonConfig.sendingDisabled)
 		setPrimaryButtonText(buttonConfig.primaryText)
 		setSecondaryButtonText(buttonConfig.secondaryText)
-	}, [lastMessage, mode, setSendingDisabled])
+	}, [lastMessage, mode, setSendingDisabled, extensionState.buttonStateSnapshot])
 
 	useEffect(() => {
 		if (!messages?.length) {
