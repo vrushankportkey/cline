@@ -2217,7 +2217,7 @@ export class Task {
 		}
 
 		if (shouldCompact) {
-			userContent.push({ type: "text", text: summarizeTask() })
+			userContent.push({ type: "text", text: summarizeTask(this.focusChainSettings.enabled) })
 		}
 
 		await this.messageStateHandler.addToApiConversationHistory({
@@ -2568,6 +2568,7 @@ export class Task {
 								parsedText,
 								localWorkflowToggles,
 								globalWorkflowToggles,
+								this.ulid,
 							)
 
 							if (needsCheck) {
