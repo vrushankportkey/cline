@@ -10,7 +10,13 @@ import * as path from "path"
 import * as vscode from "vscode"
 import { Controller } from "@/core/controller"
 import { getCwd } from "@/utils/path"
-import { calculateToolSuccessRate, getFileChanges, initializeGitRepository, validateWorkspacePath } from "./GitHelper"
+import {
+	calculateToolSuccessRate,
+	GitFileChange,
+	getFileChanges,
+	initializeGitRepository,
+	validateWorkspacePath,
+} from "./GitHelper"
 
 /**
  * Creates a tracker to monitor tool calls and failures during task execution
@@ -322,7 +328,7 @@ export function createTestServer(controller: Controller): http.Server {
 						}
 
 						// Get file changes
-						let fileChanges
+						let fileChanges: GitFileChange | undefined
 						try {
 							// Get the workspace path using our helper function
 							const workspacePath = await getCwd()

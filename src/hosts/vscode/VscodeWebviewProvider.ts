@@ -8,7 +8,6 @@ import { handleGrpcRequest, handleGrpcRequestCancel } from "@/core/controller/gr
 import { HostProvider } from "@/hosts/host-provider"
 import type { ExtensionMessage } from "@/shared/ExtensionMessage"
 import { WebviewMessage } from "@/shared/WebviewMessage"
-import type { WebviewProviderType } from "@/shared/webview/types"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -23,10 +22,6 @@ export class VscodeWebviewProvider extends WebviewProvider implements vscode.Web
 
 	private webview?: vscode.WebviewView | vscode.WebviewPanel
 	private disposables: vscode.Disposable[] = []
-
-	constructor(context: vscode.ExtensionContext, providerType: WebviewProviderType) {
-		super(context, providerType)
-	}
 
 	override getWebviewUri(uri: Uri) {
 		if (!this.webview) {
@@ -130,14 +125,14 @@ export class VscodeWebviewProvider extends WebviewProvider implements vscode.Web
 		// Listen for configuration changes
 		vscode.workspace.onDidChangeConfiguration(
 			async (e) => {
-				if (e && e.affectsConfiguration("workbench.colorTheme")) {
+				if (e?.affectsConfiguration("workbench.colorTheme")) {
 					// Send theme update via gRPC subscription
 					const theme = await getTheme(this.context)
 					if (theme) {
 						await sendThemeEvent(JSON.stringify(theme))
 					}
 				}
-				if (e && e.affectsConfiguration("cline.mcpMarketplace.enabled")) {
+				if (e?.affectsConfiguration("cline.mcpMarketplace.enabled")) {
 					// Update state when marketplace tab setting changes
 					await this.controller.postStateToWebview()
 				}

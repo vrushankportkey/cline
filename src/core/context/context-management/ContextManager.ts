@@ -111,7 +111,7 @@ export class ContextManager {
 	shouldCompactContextWindow(clineMessages: ClineMessage[], api: ApiHandler, previousApiReqIndex: number): boolean {
 		if (previousApiReqIndex >= 0) {
 			const previousRequest = clineMessages[previousApiReqIndex]
-			if (previousRequest && previousRequest.text) {
+			if (previousRequest?.text) {
 				const { tokensIn, tokensOut, cacheWrites, cacheReads }: ClineApiReqInfo = JSON.parse(previousRequest.text)
 				const totalTokens = (tokensIn || 0) + (tokensOut || 0) + (cacheWrites || 0) + (cacheReads || 0)
 
@@ -135,7 +135,7 @@ export class ContextManager {
 		maxContextWindow: number
 	} | null {
 		// Use provided triggerIndex or fallback to automatic detection
-		let targetIndex
+		let targetIndex: number
 		if (triggerIndex !== undefined) {
 			targetIndex = triggerIndex
 		} else {
@@ -150,7 +150,7 @@ export class ContextManager {
 
 		if (targetIndex >= 0) {
 			const targetRequest = clineMessages[targetIndex]
-			if (targetRequest && targetRequest.text) {
+			if (targetRequest?.text) {
 				try {
 					const { tokensIn, tokensOut, cacheWrites, cacheReads }: ClineApiReqInfo = JSON.parse(targetRequest.text)
 					const tokensUsed = (tokensIn || 0) + (tokensOut || 0) + (cacheWrites || 0) + (cacheReads || 0)
@@ -593,7 +593,7 @@ export class ContextManager {
 		let foundMatch = false
 		const filePaths: string[] = []
 
-		let match
+		let match: RegExpExecArray | null
 		while ((match = pattern.exec(secondBlockText)) !== null) {
 			foundMatch = true
 
@@ -791,109 +791,5 @@ export class ContextManager {
 		}
 
 		return [didUpdate, updatedMessageIndices]
-	}
-
-	/**
-	 * count total characters in messages and total savings within this range
-	 */
-	private countCharactersAndSavingsInRange(
-		apiMessages: Anthropic.Messages.MessageParam[],
-		startIndex: number,
-		endIndex: number,
-		uniqueFileReadIndices: Set<number>,
-	): { totalCharacters: number; charactersSaved: number } {
-		let totalCharCount = 0
-		let totalCharactersSaved = 0
-
-		for (let i = startIndex; i < endIndex; i++) {
-			// looping over the outer indices of messages
-			const message = apiMessages[i]
-
-			if (!message.content) {
-				continue
-			}
-
-			// hasExistingAlterations checks whether the outer idnex has any changes
-			// hasExistingAlterations will also include the alterations we just made
-			const hasExistingAlterations = this.contextHistoryUpdates.has(i)
-			const hasNewAlterations = uniqueFileReadIndices.has(i)
-
-			if (Array.isArray(message.content)) {
-				for (let blockIndex = 0; blockIndex < message.content.length; blockIndex++) {
-					// looping over inner indices of messages
-					const block = message.content[blockIndex]
-
-					if (block.type === "text" && block.text) {
-						// true if we just altered it, or it was altered before
-						if (hasExistingAlterations) {
-							const innerTuple = this.contextHistoryUpdates.get(i)
-							const updates = innerTuple?.[1].get(blockIndex) // updated text for this inner index
-
-							if (updates && updates.length > 0) {
-								// exists if we have an update for the message at this index
-								const latestUpdate = updates[updates.length - 1]
-
-								// if block was just altered, then calculate savings
-								if (hasNewAlterations) {
-									let originalTextLength
-									if (updates.length > 1) {
-										originalTextLength = updates[updates.length - 2][2][0].length // handles case if we have multiple updates for same text block
-									} else {
-										originalTextLength = block.text.length
-									}
-
-									const newTextLength = latestUpdate[2][0].length // replacement text
-									totalCharactersSaved += originalTextLength - newTextLength
-
-									totalCharCount += originalTextLength
-								} else {
-									// meaning there was an update to this text previously, but we didn't just alter it
-									totalCharCount += latestUpdate[2][0].length
-								}
-							} else {
-								// reach here if there was one inner index with an update, but now we are at a different index, so updates is not defined
-								totalCharCount += block.text.length
-							}
-						} else {
-							// reach here if there's no alterations for this outer index, meaning each inner index won't have any changes either
-							totalCharCount += block.text.length
-						}
-					} else if (block.type === "image" && block.source) {
-						if (block.source.type === "base64" && block.source.data) {
-							totalCharCount += block.source.data.length
-						}
-					}
-				}
-			}
-		}
-
-		return { totalCharacters: totalCharCount, charactersSaved: totalCharactersSaved }
-	}
-
-	/**
-	 * count total percentage character savings across in-range conversation
-	 */
-	private calculateContextOptimizationMetrics(
-		apiMessages: Anthropic.Messages.MessageParam[],
-		conversationHistoryDeletedRange: [number, number] | undefined,
-		uniqueFileReadIndices: Set<number>,
-	): number {
-		// count for first user-assistant message pair
-		const firstChunkResult = this.countCharactersAndSavingsInRange(apiMessages, 0, 2, uniqueFileReadIndices)
-
-		// count for the remaining in-range messages
-		const secondChunkResult = this.countCharactersAndSavingsInRange(
-			apiMessages,
-			conversationHistoryDeletedRange ? conversationHistoryDeletedRange[1] + 1 : 2,
-			apiMessages.length,
-			uniqueFileReadIndices,
-		)
-
-		const totalCharacters = firstChunkResult.totalCharacters + secondChunkResult.totalCharacters
-		const totalCharactersSaved = firstChunkResult.charactersSaved + secondChunkResult.charactersSaved
-
-		const percentCharactersSaved = totalCharacters === 0 ? 0 : totalCharactersSaved / totalCharacters
-
-		return percentCharactersSaved
 	}
 }

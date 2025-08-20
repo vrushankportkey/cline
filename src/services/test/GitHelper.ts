@@ -2,6 +2,13 @@ import { Logger } from "@services/logging/Logger"
 import { execa } from "execa"
 import * as path from "path"
 
+export interface GitFileChange {
+	created: string[]
+	modified: string[]
+	deleted: string[]
+	diff: string
+}
+
 /**
  * Validates that the workspace path is valid and writable for Git operations
  * @param workspacePath The workspace path to validate
@@ -121,12 +128,7 @@ export async function initializeGitRepository(workspacePath: string): Promise<bo
  * @param workspacePath The workspace path to check for changes
  * @returns Object containing lists of created, modified, and deleted files, plus the full diff
  */
-export async function getFileChanges(workspacePath: string): Promise<{
-	created: string[]
-	modified: string[]
-	deleted: string[]
-	diff: string
-}> {
+export async function getFileChanges(workspacePath: string): Promise<GitFileChange> {
 	// Validate workspace path before proceeding
 	await validateWorkspacePath(workspacePath)
 
