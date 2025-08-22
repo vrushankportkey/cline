@@ -97,17 +97,9 @@ export class AttemptCompletionHandler implements IToolHandler, IPartialBlockHand
 				await config.callbacks.saveCheckpoint(true, completionMessageTs)
 				await addNewChangesFlagToLastCompletionResultMessage()
 				telemetryService.captureTaskCompleted(config.ulid)
-
-				if (config.focusChainSettings.enabled) {
-					await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-				}
 			} else {
 				// we already sent a command message, meaning the complete completion message has also been sent
 				await config.callbacks.saveCheckpoint(true)
-
-				if (config.focusChainSettings.enabled) {
-					await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-				}
 			}
 
 			// complete command message - need to ask for approval
@@ -130,10 +122,6 @@ export class AttemptCompletionHandler implements IToolHandler, IPartialBlockHand
 			await config.callbacks.saveCheckpoint(true, completionMessageTs)
 			await addNewChangesFlagToLastCompletionResultMessage()
 			telemetryService.captureTaskCompleted(config.ulid)
-
-			if (config.focusChainSettings.enabled) {
-				await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-			}
 		}
 
 		// we already sent completion_result says, an empty string asks relinquishes control over button and field

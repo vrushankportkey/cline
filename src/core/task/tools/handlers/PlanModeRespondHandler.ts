@@ -56,11 +56,6 @@ export class PlanModeRespondHandler implements IToolHandler, IPartialBlockHandle
 		// Store the number of options for telemetry
 		const options = parsePartialArrayString(optionsRaw || "[]")
 
-		// Handle focus chain updates
-		if (!block.partial && config.focusChainSettings.enabled) {
-			await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-		}
-
 		// Set awaiting plan response state
 		config.taskState.isAwaitingPlanResponse = true
 

@@ -79,11 +79,6 @@ export class SummarizeTaskHandler implements IToolHandler, IPartialBlockHandler 
 				)
 			}
 
-			// Handle focus chain updates
-			if (!block.partial && config.focusChainSettings.enabled) {
-				await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-			}
-
 			return toolResult
 		} catch (error) {
 			return `Error summarizing context window: ${(error as Error).message}`

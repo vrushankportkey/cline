@@ -153,10 +153,6 @@ export class BrowserToolHandler implements IFullyManagedTool {
 						browserActionResult.screenshot ? [browserActionResult.screenshot] : [],
 					)
 
-					if (!block.partial && config.focusChainSettings.enabled) {
-						await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-					}
-
 					await config.callbacks.saveCheckpoint()
 					return result
 

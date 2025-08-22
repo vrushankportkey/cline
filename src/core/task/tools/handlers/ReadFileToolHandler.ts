@@ -137,11 +137,6 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 			config.taskState.userMessageContent.push(result.imageBlock)
 		}
 
-		// Handle focus chain updates
-		if (!block.partial && config.focusChainSettings.enabled) {
-			await config.callbacks.updateFCListFromToolResponse(block.params.task_progress)
-		}
-
 		return result.text
 	}
 }
