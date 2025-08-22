@@ -110,53 +110,112 @@ export function validateTaskConfig(config: any): asserts config is TaskConfig {
 	}
 
 	// Core identifiers
-	if (!config.taskId) throw new Error("Missing taskId in TaskConfig")
-	if (!config.ulid) throw new Error("Missing ulid in TaskConfig")
-	if (!config.cwd) throw new Error("Missing cwd in TaskConfig")
-	if (!config.mode) throw new Error("Missing mode in TaskConfig")
-	if (typeof config.strictPlanModeEnabled !== "boolean") throw new Error("Missing strictPlanModeEnabled in TaskConfig")
-	if (!config.context) throw new Error("Missing context in TaskConfig")
+	if (!config.taskId) {
+		throw new Error("Missing taskId in TaskConfig")
+	}
+	if (!config.ulid) {
+		throw new Error("Missing ulid in TaskConfig")
+	}
+	if (!config.cwd) {
+		throw new Error("Missing cwd in TaskConfig")
+	}
+	if (!config.mode) {
+		throw new Error("Missing mode in TaskConfig")
+	}
+	if (typeof config.strictPlanModeEnabled !== "boolean") {
+		throw new Error("Missing strictPlanModeEnabled in TaskConfig")
+	}
+	if (!config.context) {
+		throw new Error("Missing context in TaskConfig")
+	}
 
 	// State management
-	if (!config.taskState) throw new Error("Missing taskState in TaskConfig")
-	if (!config.messageState) throw new Error("Missing messageState in TaskConfig")
+	if (!config.taskState) {
+		throw new Error("Missing taskState in TaskConfig")
+	}
+	if (!config.messageState) {
+		throw new Error("Missing messageState in TaskConfig")
+	}
 
 	// API and services
-	if (!config.api) throw new Error("Missing api in TaskConfig")
-	if (!config.services) throw new Error("Missing services in TaskConfig")
+	if (!config.api) {
+		throw new Error("Missing api in TaskConfig")
+	}
+	if (!config.services) {
+		throw new Error("Missing services in TaskConfig")
+	}
 
 	// Validate services
 	const services = config.services
-	if (!services.mcpHub) throw new Error("Missing services.mcpHub in TaskConfig")
-	if (!services.browserSession) throw new Error("Missing services.browserSession in TaskConfig")
-	if (!services.urlContentFetcher) throw new Error("Missing services.urlContentFetcher in TaskConfig")
-	if (!services.diffViewProvider) throw new Error("Missing services.diffViewProvider in TaskConfig")
-	if (!services.fileContextTracker) throw new Error("Missing services.fileContextTracker in TaskConfig")
-	if (!services.clineIgnoreController) throw new Error("Missing services.clineIgnoreController in TaskConfig")
-	if (!services.contextManager) throw new Error("Missing services.contextManager in TaskConfig")
-	if (!services.cacheService) throw new Error("Missing services.cacheService in TaskConfig")
+	if (!services.mcpHub) {
+		throw new Error("Missing services.mcpHub in TaskConfig")
+	}
+	if (!services.browserSession) {
+		throw new Error("Missing services.browserSession in TaskConfig")
+	}
+	if (!services.urlContentFetcher) {
+		throw new Error("Missing services.urlContentFetcher in TaskConfig")
+	}
+	if (!services.diffViewProvider) {
+		throw new Error("Missing services.diffViewProvider in TaskConfig")
+	}
+	if (!services.fileContextTracker) {
+		throw new Error("Missing services.fileContextTracker in TaskConfig")
+	}
+	if (!services.clineIgnoreController) {
+		throw new Error("Missing services.clineIgnoreController in TaskConfig")
+	}
+	if (!services.contextManager) {
+		throw new Error("Missing services.contextManager in TaskConfig")
+	}
+	if (!services.cacheService) {
+		throw new Error("Missing services.cacheService in TaskConfig")
+	}
 
 	// Settings
-	if (!config.autoApprovalSettings) throw new Error("Missing autoApprovalSettings in TaskConfig")
-	if (!config.autoApprover) throw new Error("Missing autoApprover in TaskConfig")
-	if (!config.browserSettings) throw new Error("Missing browserSettings in TaskConfig")
-	if (!config.focusChainSettings) throw new Error("Missing focusChainSettings in TaskConfig")
+	if (!config.autoApprovalSettings) {
+		throw new Error("Missing autoApprovalSettings in TaskConfig")
+	}
+	if (!config.autoApprover) {
+		throw new Error("Missing autoApprover in TaskConfig")
+	}
+	if (!config.browserSettings) {
+		throw new Error("Missing browserSettings in TaskConfig")
+	}
+	if (!config.focusChainSettings) {
+		throw new Error("Missing focusChainSettings in TaskConfig")
+	}
 
 	// Callbacks
-	if (!config.callbacks) throw new Error("Missing callbacks in TaskConfig")
+	if (!config.callbacks) {
+		throw new Error("Missing callbacks in TaskConfig")
+	}
 	const callbacks = config.callbacks
-	if (typeof callbacks.say !== "function") throw new Error("Missing callbacks.say in TaskConfig")
-	if (typeof callbacks.ask !== "function") throw new Error("Missing callbacks.ask in TaskConfig")
-	if (typeof callbacks.saveCheckpoint !== "function") throw new Error("Missing callbacks.saveCheckpoint in TaskConfig")
-	if (typeof callbacks.sayAndCreateMissingParamError !== "function")
+	if (typeof callbacks.say !== "function") {
+		throw new Error("Missing callbacks.say in TaskConfig")
+	}
+	if (typeof callbacks.ask !== "function") {
+		throw new Error("Missing callbacks.ask in TaskConfig")
+	}
+	if (typeof callbacks.saveCheckpoint !== "function") {
+		throw new Error("Missing callbacks.saveCheckpoint in TaskConfig")
+	}
+	if (typeof callbacks.sayAndCreateMissingParamError !== "function") {
 		throw new Error("Missing callbacks.sayAndCreateMissingParamError in TaskConfig")
-	if (typeof callbacks.removeLastPartialMessageIfExistsWithType !== "function")
+	}
+	if (typeof callbacks.removeLastPartialMessageIfExistsWithType !== "function") {
 		throw new Error("Missing callbacks.removeLastPartialMessageIfExistsWithType in TaskConfig")
-	if (typeof callbacks.executeCommandTool !== "function") throw new Error("Missing callbacks.executeCommandTool in TaskConfig")
-	if (typeof callbacks.doesLatestTaskCompletionHaveNewChanges !== "function")
+	}
+	if (typeof callbacks.executeCommandTool !== "function") {
+		throw new Error("Missing callbacks.executeCommandTool in TaskConfig")
+	}
+	if (typeof callbacks.doesLatestTaskCompletionHaveNewChanges !== "function") {
 		throw new Error("Missing callbacks.doesLatestTaskCompletionHaveNewChanges in TaskConfig")
-	if (typeof callbacks.updateFCListFromToolResponse !== "function")
+	}
+	if (typeof callbacks.updateFCListFromToolResponse !== "function") {
 		throw new Error("Missing callbacks.updateFCListFromToolResponse in TaskConfig")
-	if (typeof callbacks.shouldAutoApproveToolWithPath !== "function")
+	}
+	if (typeof callbacks.shouldAutoApproveToolWithPath !== "function") {
 		throw new Error("Missing callbacks.shouldAutoApproveToolWithPath in TaskConfig")
+	}
 }
