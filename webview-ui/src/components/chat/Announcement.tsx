@@ -2,10 +2,12 @@ import { Accordion, AccordionItem } from "@heroui/react"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { CSSProperties, memo, useState } from "react"
+import { useMount } from "react-use"
 import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
 import { getAsVar, VSC_DESCRIPTION_FOREGROUND, VSC_INACTIVE_SELECTION_BACKGROUND } from "@/utils/vscStyles"
+import VSCodeButtonLink from "../common/VSCodeButtonLink"
 import { useApiConfigurationHandlers } from "../settings/utils/useApiConfigurationHandlers"
 
 interface AnnouncementProps {
@@ -22,8 +24,8 @@ const containerStyle: CSSProperties = {
 	flexShrink: 0,
 }
 const closeIconStyle: CSSProperties = { position: "absolute", top: "8px", right: "8px" }
-const h3TitleStyle: CSSProperties = { margin: "0 0 8px" }
-const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "12px" }
+const h3TitleStyle: CSSProperties = { margin: "0 0 8px", fontWeight: "bold" }
+const ulStyle: CSSProperties = { margin: "0 0 8px", paddingLeft: "12px", listStyleType: "disc" }
 const _accountIconStyle: CSSProperties = { fontSize: 11 }
 const hrStyle: CSSProperties = {
 	height: "1px",
@@ -42,11 +44,15 @@ Patch releases (3.19.1 → 3.19.2) will not trigger new announcements.
 const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 	const minorVersion = version.split(".").slice(0, 2).join(".") // 2.0.0 -> 2.0
 	const { clineUser } = useClineAuth()
-	const { apiConfiguration, openRouterModels, setShowChatModelSelector } = useExtensionState()
+	const { apiConfiguration, openRouterModels, setShowChatModelSelector, refreshOpenRouterModels } = useExtensionState()
 	const user = apiConfiguration?.clineAccountId ? clineUser : undefined
 	const { handleFieldsChange } = useApiConfigurationHandlers()
 
 	const [didClickGrokCodeButton, setDidClickGrokCodeButton] = useState(false)
+	const [didClickCodeSupernovaButton, setDidClickCodeSupernovaButton] = useState(false)
+
+	// Need to get latest model list in case user hits shortcut button to set model
+	useMount(refreshOpenRouterModels)
 
 	const setGrokCodeFast1 = () => {
 		const modelId = "x-ai/grok-code-fast-1"
@@ -66,6 +72,24 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 		}, 10)
 	}
 
+	const setCodeSupernova = () => {
+		const modelId = "cline/code-supernova"
+		// set both plan and act modes to use code-supernova
+		handleFieldsChange({
+			planModeOpenRouterModelId: modelId,
+			actModeOpenRouterModelId: modelId,
+			planModeOpenRouterModelInfo: openRouterModels[modelId],
+			actModeOpenRouterModelInfo: openRouterModels[modelId],
+			planModeApiProvider: "cline",
+			actModeApiProvider: "cline",
+		})
+
+		setTimeout(() => {
+			setDidClickCodeSupernovaButton(true)
+			setShowChatModelSelector(true)
+		}, 10)
+	}
+
 	const handleShowAccount = () => {
 		AccountServiceClient.accountLoginClicked(EmptyRequest.create()).catch((err) =>
 			console.error("Failed to get login URL:", err),
@@ -80,21 +104,19 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 			<h3 style={h3TitleStyle}>
 				🎉{"  "}New in v{minorVersion}
 			</h3>
-			<b>Cline is now available in JetBrains IDEs!</b>
-			<div style={{ margin: "0.3rem 0" }} />
-			Cline is now officially available for JetBrains IDEs including IntelliJ IDEA, PyCharm, WebStorm, and more! Experience
-			the same powerful AI coding assistant you love in VSCode, now in your favorite JetBrains environment. Get started at:{" "}
-			<a href="https://plugins.jetbrains.com/plugin/26861-cline">JetBrains Marketplace</a>
+			<b>Free Stealth Model 🥷:</b> Try code-supernova, an agentic coding model built for Cline with 200k context window and
+			multi-modal support!
+			<div style={{ margin: "8px 0" }} />
+			{user ? (
+				!didClickCodeSupernovaButton ? (
+					<VSCodeButton appearance="primary" onClick={setCodeSupernova}>
+						Try code-supernova
+					</VSCodeButton>
+				) : null
+			) : null}
 			<div style={{ margin: "12px 0" }} />
-			<b>
-				Plus: Free <code>grok-code-fast-1</code>
-			</b>
-			<div style={{ margin: "0.3rem 0" }} />
-			We partnered with xAI to help build this model from the ground up for agentic coding, and so far–community feedback
-			has been incredible. xAI is continuously improving the model's intelligence with more usage, so give it a try today
-			and let us know what you think! Read more about it here:{" "}
-			<a href="https://x.ai/news/grok-code-fast-1">https://x.ai/news/grok-code-fast-1</a>
-			<div style={{ margin: "18px 0" }} />
+			<b>Continued Grok Promotion:</b> Free grok-code-fast-1 access extended!
+			<div style={{ margin: "10px 0" }} />
 			{user ? (
 				!didClickGrokCodeButton ? (
 					<VSCodeButton appearance="primary" onClick={setGrokCodeFast1}>
@@ -102,10 +124,17 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 					</VSCodeButton>
 				) : null
 			) : (
-				<VSCodeButton appearance="secondary" onClick={handleShowAccount}>
+				<VSCodeButton appearance="primary" onClick={handleShowAccount}>
 					Sign Up with Cline
 				</VSCodeButton>
 			)}
+			<div style={{ margin: "12px 0" }} />
+			<b>JetBrains Support is Live!</b>
+			<br />
+			Use Cline in IntelliJ IDEA, PyCharm, WebStorm, Android Studio, GoLand, PhpStorm, and all JetBrains IDEs.
+			<div style={{ margin: "10px 0" }} />
+			<VSCodeButtonLink href="https://cline.bot/jetbrains">Get Cline for JetBrains!</VSCodeButtonLink>
+			<div style={{ margin: "12px 0" }} />
 			<div style={{ margin: "-8px 0 -3px 0" }}>
 				<Accordion className="pl-0" isCompact>
 					<AccordionItem
@@ -120,6 +149,10 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 						title="Previous Updates:">
 						<ul style={ulStyle}>
 							<li>
+								<b>Free grok-code-fast-1:</b> Partnered with xAI to provide free usage of grok. Community feedback
+								has been incredible and xAI is continuously improving the model's intelligence.
+							</li>
+							<li>
 								<b>Focus Chain:</b> Keeps cline focused on long-horizon tasks with automatic todo list management,
 								breaking down complex tasks into manageable steps with real-time progress tracking and passive
 								reminders.
@@ -133,10 +166,6 @@ const Announcement = ({ version, hideAnnouncement }: AnnouncementProps) => {
 								<b>Deep Planning:</b> New <code>/deep-planning</code> slash command transforms Cline into an
 								architect who investigates your codebase, asks clarifying questions, and creates a comprehensive
 								plan before writing any code.
-							</li>
-							<li>
-								<b>1M Context for Claude Sonnet 4:</b> Cline/OpenRouter users get instant access, Anthropic users
-								need Tier 4, and Bedrock users must be on a supported region.
 							</li>
 						</ul>
 					</AccordionItem>
